@@ -1,0 +1,19 @@
+# This is the main playbook. In here we describe roles
+---
+- name: Configure Kubernetes cluster
+  hosts: kube-cluster
+  become: yes
+  roles:
+    - common
+
+- name: Configure Kubernetes master node
+  hosts: master
+  become: yes
+  roles:
+    - kubernetes-master
+
+- name: Configure Kubernetes worker nodes
+  hosts: workers
+  become: yes
+  roles:
+    - kubernetes-worker

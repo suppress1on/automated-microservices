@@ -1,0 +1,45 @@
+# In this file we describe a tasks and stages to execute
+stages:
+  - build
+  - test
+  - deploy
+
+variables:
+  DOCKER_IMAGE_APP1: pavel12829/app1-img
+  DOCKER_IMAGE_APP2: pavel12829/app2-img
+  KUBE_NAMESPACE: default
+
+# Build Docker images
+build:
+  stage: build
+  script:
+    - echo "Building Docker images..."
+    - docker build -t $DOCKER_IMAGE_APP1:latest ./docker/app1
+    - docker build -t $DOCKER_IMAGE_APP2:latest ./docker/app2
+    - docker login -u "$DOCKER_HUB_USER" -p "$DOCKER_HUB_PASSWORD"
+    - docker push $DOCKER_IMAGE_APP1:latest
+    - docker push $DOCKER_IMAGE_APP2:latest
+
+# Testing
+test:
+  stage: test
+  script:
+    - echo "Running unit tests for app1..."
+    - docker run $DOCKER_IMAGE_APP1:latest python -m pytest
+    - echo "Running unit tests for app2..."
+    - docker run $DOCKER_IMAGE_APP2:latest python -m pytest
+
+# Deploy in Kubernetes
+deploy:
+  stage: deploy
+  script:
+    - echo "Deploying to Kubernetes..."
+    - echo "$KUBECONFIG" > kubeconfig.yaml
+    - export KUBECONFIG=kubeconfig.yaml
+    - kubectl config use-context my-cluster
+    - kubectl apply -f kubernetes/deployments/app1-deployment.yaml
+    - kubectl apply -f kubernetes/deployments/app2-deployment.yaml
+    - kubectl apply -f kubernetes/services/app1-service.yaml
+    - kubectl apply -f kubernetes/services/app2-service.yaml
+  only:
+    - main  # Запускать только при изменениях в ветке main

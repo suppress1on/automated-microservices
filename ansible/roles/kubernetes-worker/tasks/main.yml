@@ -1,0 +1,4 @@
+# Worker-node join to the cluster
+---
+- name: Join worker node to the cluster
+  shell: kubeadm join MASTER_PRIVATE_IP:6443 --token TOKEN --discovery-token-ca-cert-hash sha256:HASH
